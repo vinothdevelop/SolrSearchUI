@@ -1,0 +1,35 @@
+<div class="container">
+  <div class="controls">
+    Solr Url
+    <input type="text" [(ngModel)]="solrUrl" (blur)="solrUrlChange($event)" />
+  </div>
+  <div class="controls">
+    Solr Core
+    <select [(ngModel)]="solrCore" (ngModelChange)="solrCoreChange($event)">
+      <option *ngFor="let core of solrCores" [ngValue]="core">{{core}}</option>
+    </select>
+  </div>
+
+  <div class="controls">
+    Page Size
+    <select [ngModel]="pageSize" (ngModelChange)="pageSizeChange($event)">
+      <option>10</option>
+      <option>20</option>
+      <option>50</option>
+      <option>100</option>
+    </select>
+  </div>
+</div>
+<table class="IndexTable">
+  <tr>
+    <th *ngFor="let column of displayedColumns">
+      {{ column.name }}
+      <input type="search" [(ngModel)]="queryArray[column.name]" (keyup)="queryChange($event)" />
+    </th>
+  </tr>
+  <tr *ngFor="let row of dataSource">
+    <td *ngFor="let column of displayedColumns">
+      {{ row[column.name] }}
+    </td>
+  </tr>
+</table>
