@@ -1,0 +1,5 @@
+{
+    "solrUrl": "http://localhost:8983",
+    "indexName": "techproducts",
+    "returnFormat":"wt=json"
+  }

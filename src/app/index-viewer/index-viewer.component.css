@@ -1,0 +1,31 @@
+.IndexTable {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.IndexTable td, .IndexTable th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.IndexTable tr:nth-child(even){background-color: #f2f2f2;}
+
+.IndexTable tr:hover {background-color: #ddd;}
+
+.IndexTable th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}
+
+.container
+{
+    text-align:center;
+}
+.controls
+{
+    display:inline;
+}
