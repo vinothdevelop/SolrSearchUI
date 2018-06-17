@@ -1,35 +1,93 @@
-<div class="container">
-  <div class="controls">
-    Solr Url
-    <input type="text" [(ngModel)]="solrUrl" (blur)="solrUrlChange($event)" />
-  </div>
-  <div class="controls">
-    Solr Core
-    <select [(ngModel)]="solrCore" (ngModelChange)="solrCoreChange($event)">
-      <option *ngFor="let core of solrCores" [ngValue]="core">{{core}}</option>
-    </select>
-  </div>
+<form>
+  <div class="row">
+    <div class="col">
+      <p>Solr Url</p>
+    </div>
+    <div class="col">
 
-  <div class="controls">
-    Page Size
-    <select [ngModel]="pageSize" (ngModelChange)="pageSizeChange($event)">
-      <option>10</option>
-      <option>20</option>
-      <option>50</option>
-      <option>100</option>
-    </select>
+      <input type="text" class="form-control" [(ngModel)]="solrUrl" (blur)="solrUrlChange($event)" [ngModelOptions]="{standalone: true}"
+      />
+    </div>
+    <div class="col">
+      <p>Solr Core</p>
+    </div>
+    <div class="col">
+
+      <select [(ngModel)]="solrCore" class="form-control" (ngModelChange)="solrCoreChange($event)" [ngModelOptions]="{standalone: true}">
+        <option *ngFor="let core of solrCores" [ngValue]="core">{{core}}</option>
+      </select>
+    </div>
+    <div class="col">
+      <p>Page Size</p>
+    </div>
+    <div class="col">
+
+      <select [ngModel]="pageSize" class="form-control" (ngModelChange)="pageSizeChange($event)" [ngModelOptions]="{standalone: true}">
+        <option>10</option>
+        <option>20</option>
+        <option>50</option>
+        <option>100</option>
+      </select>
+    </div>
   </div>
-</div>
-<table class="IndexTable">
-  <tr>
-    <th *ngFor="let column of displayedColumns">
-      {{ column.name }}
-      <input type="search" [(ngModel)]="queryArray[column.name]" (keyup)="queryChange($event)" />
-    </th>
-  </tr>
-  <tr *ngFor="let row of dataSource">
-    <td *ngFor="let column of displayedColumns">
-      {{ row[column.name] }}
-    </td>
-  </tr>
+  <div class="row">
+    <br/>
+  </div>
+</form>
+<nav aria-label="Page navigation example">
+  <ul *ngIf="pager.totalPages > 1" class="pagination justify-content-start">
+    <li class="page-item" [ngClass]="{disabled:pager.currentPage === 1}">
+      <a class="page-link" (click)="setPage(1)" href="#">First</a>
+    </li>
+    <li class="page-item" [ngClass]="{disabled:pager.currentPage === 1}">
+      <a class="page-link" (click)="setPage(pager.currentPage - 1)" href="#">Previous</a>
+    </li>
+    <li class="page-item" [ngClass]="{disabled:pager.currentPage === pager.totalPages}">
+      <a class="page-link" (click)="setPage(pager.currentPage + 1)" href="#">Next</a>
+    </li>
+    <li class="page-item" [ngClass]="{disabled:pager.currentPage === pager.totalPages}">
+      <a class="page-link" (click)="setPage(pager.totalPages)" href="#">Last</a>
+    </li>
+  </ul>
+</nav>
+<table class="table table-bordered  table-striped">
+  <thead>
+    <tr>
+      <th *ngFor="let column of displayedColumns" scope="col">
+        <p class="text-capitalize">{{ column.name }}</p>
+
+        <div class="row" style="width: 200px;" *ngIf="column.type == 'text_general' || column.type == 'string' || column.type == 'long' || column.type =='pint' || column.type =='pfloat'">
+          <div class="col">
+            <select [(ngModel)]="column['filterType']" class="form-control" (ngModelChange)="queryChange($event)">
+              <option *ngIf="column.type == 'text_general' || column.type == 'string'">contains</option>
+              <option *ngIf="column.type == 'text_general' || column.type == 'string'">starts with</option>
+              <option *ngIf="column.type == 'text_general' || column.type == 'string'">ends with</option>
+              <option *ngIf="column.type == 'text_general' || column.type == 'string' || column.type == 'long' || column.type =='pint' || column.type =='pfloat'">equals</option>
+              <option *ngIf="column.type == 'long' || column.type =='pint' || column.type =='pfloat'">greater than or equal</option>
+              <option *ngIf="column.type == 'long' || column.type =='pint' || column.type =='pfloat'">less than or equal</option>
+            </select>
+          </div>
+          <div class="col">
+            <input type="search" class="form-control" [(ngModel)]="column['filterValue']" (keyup)="queryChange($event)" />
+          </div>
+        </div>
+        <div class="row" *ngIf="column.type == 'boolean'">
+          <select [(ngModel)]="column['filterValue']" class="form-control" (ngModelChange)="queryChange($event)">
+            <option>All</option>
+            <option>True</option>
+            <option>False</option>
+          </select>
+        </div>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of dataSource">
+      <td *ngFor="let column of displayedColumns">
+        <span class="d-inline-block text-truncate" style="max-width: 200px;" data-toggle="tooltip" title="{{ row[column.name] }}">
+          {{ row[column.name] }}
+        </span>
+      </td>
+    </tr>
+  </tbody>
 </table>

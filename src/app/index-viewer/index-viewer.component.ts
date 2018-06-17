@@ -3,6 +3,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ConfigService } from '../config/config.service';
 import { Config } from '../config/config';
 import { SolrServiceService } from '../solr-service.service';
+import { Pager } from '../interfaces/pager';
+import { Column } from '../interfaces/column';
 
 @Component({
   selector: 'app-index-viewer',
@@ -17,13 +19,13 @@ export class IndexViewerComponent implements OnInit {
   apiUrl = '/select?indent=on&q=';
   apiQuery = '*:*';
   dataSource: any;
-  displayedColumns: any;
+  displayedColumns: Array<Column>;
   query: string;
-  queryArray: any;
   pageSize: string;
   solrUrl: string;
   solrCores: Array<string>;
   solrCore: string;
+  pager: Pager;
 
   pageSizeChange(event: any) {
     this.pageSize = event;
@@ -31,7 +33,22 @@ export class IndexViewerComponent implements OnInit {
   }
 
   solrUrlChange(event: KeyboardEvent) {
-    console.log(this.solrUrl);
+    this.GetSolrCore();
+  }
+
+  setPage(pageNumber: number) {
+    this.pager.currentPage = pageNumber;
+    this.pager.startIndex = (pageNumber - 1) * Number.parseInt(this.pageSize);
+    this.GetSolrData();
+  }
+
+  solrCoreChange(event: any) {
+    if (this.solrUrl !== '' && this.solrUrl != null && this.solrCore !== '' && this.solrCore != null) {
+      this.GetSolrSchema();
+    }
+  }
+
+  private GetSolrCore() {
     if (this.solrUrl !== '' && this.solrUrl != null) {
       this.solrService.getSolrCores(this.solrUrl).subscribe(data => {
         this.solrCores = [];
@@ -46,31 +63,41 @@ export class IndexViewerComponent implements OnInit {
     }
   }
 
-  solrCoreChange(event: any) {
-    if (this.solrUrl !== '' && this.solrUrl != null && this.solrCore !== '' && this.solrCore != null) {
-      this.GetSolrSchema();
-    }
-  }
-
   queryChange(event: KeyboardEvent) {
     this.apiQuery = '*:*';
-    for (const v in this.queryArray) {
-      if (this.queryArray[v] !== '' && this.queryArray[v] != null) {
-        if (this.apiQuery !== '*:*') {
-          this.apiQuery = this.apiQuery + ' AND ' + v + ':' + '*' + this.queryArray[v] + '*';
-        } else {
-          this.apiQuery = v + ':' + '*' + this.queryArray[v] + '*';
+    const queryArray = [];
+    this.displayedColumns.forEach(column => {
+      if (((column.filterType !== '' &&
+        column.filterType != null) || (column.type === 'boolean' && column.filterValue !== 'All')) &&
+        column.filterValue !== '' &&
+        column.filterValue != null) {
+        if (column.type === 'boolean') {
+          queryArray.push(column.name + ':' + column.filterValue);
+        } else if (column.filterType === 'contains') {
+          queryArray.push(column.name + ':*' + column.filterValue + '*');
+        } else if (column.filterType === 'starts with') {
+          queryArray.push(column.name + ':' + column.filterValue + '*');
+        } else if (column.filterType === 'ends with') {
+          queryArray.push(column.name + ':' + column.filterValue + '*');
+        } else if (column.filterType === 'equals') {
+          queryArray.push(column.name + ':' + column.filterValue);
+        } else if (column.filterType === 'greater than or equal') {
+          queryArray.push(column.name + ':{' + column.filterValue + ' TO *}');
+        } else if (column.filterType === 'less than or equal') {
+          queryArray.push(column.name + ':{* TO ' + column.filterValue + '  }');
         }
       }
+    });
+    if (queryArray.length > 0) {
+      this.apiQuery = queryArray.join(' AND ');
     }
+
     this.GetSolrData();
   }
 
   private GetSolrSchema() {
     this.solrService.getSolrSchema(this.solrUrl, this.solrCore).subscribe(data => {
-      this.displayedColumns = data.fields.filter(function (i, n) {
-        return i.name.indexOf('_') !== 0;
-      });
+      this.displayedColumns = data.fields;
       this.GetSolrData();
     });
   }
@@ -78,15 +105,32 @@ export class IndexViewerComponent implements OnInit {
   ngOnInit(): void {
     this.solrUrl = '';
     this.displayedColumns = [];
-    this.queryArray = {};
     this.pageSize = '10';
+    this.pager = {} as Pager;
+    this.pager.currentPage = 1;
+    this.pager.totalPages = 1;
+    this.pager.totalResults = 1;
+    this.pager.startIndex = 0;
+    this.GetConfiguration();
+  }
+
+  private GetConfiguration() {
     this.configService.getConfig().subscribe(data => {
       this.config = data;
+      this.solrUrl = data.solrUrl;
+      this.GetSolrCore();
     });
   }
 
   private GetSolrData() {
-    this.solrService.GetSolrData(this.solrUrl, this.url, this.solrCore, this.apiUrl, this.apiQuery, this.config.returnFormat, this.pageSize)
+    this.solrService.GetSolrData(this.solrUrl,
+      this.url,
+      this.solrCore,
+      this.apiUrl,
+      this.apiQuery,
+      this.config.returnFormat,
+      this.pageSize,
+      this.pager.startIndex)
       .subscribe(data => {
         this.ParseData(data);
 
@@ -101,10 +145,13 @@ export class IndexViewerComponent implements OnInit {
   }
 
   private ParseData(data: string) {
-    this.dataSource = JSON.parse(data).response.docs;
-    // tslint:disable-next-line:forin
-    for (const v in this.dataSource[0]) {
-      this.displayedColumns.push(v);
-    }
+    const parsedData = JSON.parse(data);
+    this.dataSource = parsedData.response.docs;
+    this.SetPaging(parsedData.response.numFound);
+  }
+
+  private SetPaging(totalRecords: number) {
+    this.pager.totalResults = totalRecords;
+    this.pager.totalPages = Math.ceil(totalRecords / Number.parseInt(this.pageSize));
   }
 }

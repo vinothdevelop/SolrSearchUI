@@ -21,7 +21,8 @@ export class SolrServiceService {
     apiUrl: string,
     apiQuery: string,
     returnFormat: string,
-    pageSize: string) {
+    pageSize: string,
+    startIndex: Number) {
     const solrRequest = solrUrl
       + url
       + solrCore
@@ -29,7 +30,8 @@ export class SolrServiceService {
       + apiQuery
       + '&'
       + returnFormat
-      + '&rows=' + pageSize;
+      + '&rows=' + pageSize
+      + '&start=' + startIndex;
     return this.httpService.get(solrRequest, { responseType: 'text' });
   }
 
