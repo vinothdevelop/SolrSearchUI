@@ -19,7 +19,9 @@ export class IndexViewerComponent implements OnInit {
   apiUrl = '/select?indent=on&q=';
   apiQuery = '*:*';
   dataSource: any;
+  allColumns: Array<Column>;
   displayedColumns: Array<Column>;
+  removedColumns: Array<Column>;
   query: string;
   pageSize: string;
   solrUrl: string;
@@ -50,6 +52,7 @@ export class IndexViewerComponent implements OnInit {
   }
 
   private GetSolrCore() {
+    this.alertMessage = '';
     if (this.solrUrl !== '' && this.solrUrl != null) {
       this.solrService.getSolrCores(this.solrUrl).subscribe(data => {
         this.solrCores = [];
@@ -60,7 +63,14 @@ export class IndexViewerComponent implements OnInit {
             this.GetSolrSchema();
           }
         });
-      });
+      },
+        (err: HttpErrorResponse) => {
+          if (err.error instanceof Error) {
+            this.ShowAlert('Client-side error occured.');
+          } else {
+            this.ShowAlert('Server-side error occured.');
+          }
+        });
     }
   }
 
@@ -118,16 +128,47 @@ export class IndexViewerComponent implements OnInit {
     this.GenerateFilterCondition();
   }
 
+  removeField(column: Column) {
+    this.removedColumns.push(column);
+    const index = this.displayedColumns.indexOf(column);
+    this.displayedColumns.splice(index, 1);
+    this.removedColumns = this.sortFields(this.removedColumns);
+  }
+
+  addField(column: Column) {
+    this.displayedColumns.push(column);
+    const index = this.removedColumns.indexOf(column);
+    this.removedColumns.splice(index, 1);
+    this.displayedColumns = this.sortFields(this.displayedColumns);
+  }
+
+  sortFields(columnList: Column[]): Column[] {
+    return columnList.sort(function (a, b) {
+      return (a.name.toLowerCase() < b.name.toLowerCase()) ? -1 : (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : 0;
+    });
+  }
+
   private GetSolrSchema() {
+    this.alertMessage = '';
     this.solrService.getSolrSchema(this.solrUrl, this.solrCore).subscribe(data => {
+      this.allColumns = data.fields;
       this.displayedColumns = data.fields;
       this.GetSolrData();
-    });
+    },
+      (err: HttpErrorResponse) => {
+        if (err.error instanceof Error) {
+          this.ShowAlert('Client-side error occured.');
+        } else {
+          this.ShowAlert('Server-side error occured.');
+        }
+      });
   }
 
   ngOnInit(): void {
     this.solrUrl = '';
+    this.allColumns = [];
     this.displayedColumns = [];
+    this.removedColumns = [];
     this.pageSize = '10';
     this.pager = {} as Pager;
     this.pager.currentPage = 1;
@@ -139,14 +180,23 @@ export class IndexViewerComponent implements OnInit {
   }
 
   private GetConfiguration() {
+    this.alertMessage = '';
     this.configService.getConfig().subscribe(data => {
       this.config = data;
       this.solrUrl = data.solrUrl;
       this.GetSolrCore();
-    });
+    },
+      (err: HttpErrorResponse) => {
+        if (err.error instanceof Error) {
+          this.ShowAlert('Client-side error occured.');
+        } else {
+          this.ShowAlert('Server-side error occured.');
+        }
+      });
   }
 
   private GetSolrData() {
+    this.alertMessage = '';
     this.solrService.GetSolrData(this.solrUrl,
       this.url,
       this.solrCore,
@@ -157,7 +207,6 @@ export class IndexViewerComponent implements OnInit {
       this.pager.startIndex)
       .subscribe(data => {
         this.ParseData(data);
-
       },
         (err: HttpErrorResponse) => {
           if (err.error instanceof Error) {

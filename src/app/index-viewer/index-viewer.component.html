@@ -1,7 +1,4 @@
-<div *ngIf="alertMessage!==''" class="alert alert-error alert-dismissible fade show" role="alert">
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
+<div [ngClass]="{'show':alertMessage!=='','fade':alertMessage==''}" class="alert alert-danger" role="alert">
   {{alertMessage}}
 </div>
 <div>
@@ -44,6 +41,29 @@
     <br/>
   </div>
 </form>
+<div class="row container">
+
+  Display Fields&nbsp;
+  <span *ngFor="let column of displayedColumns" class="badge badge-pill badge-dark" style="margin: 1px;">{{column.name}}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="removeField(column)">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </span>
+</div>
+<div>
+  <br/>
+</div>
+<div class="row container">
+  Other Field &nbsp;
+  <span *ngFor="let column of removedColumns" class="badge badge-pill badge-dark" style="margin: 1px;">{{column.name}}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Add" (click)="addField(column)">
+      <span aria-hidden="true">+</span>
+    </button>
+  </span>
+</div>
+<div>
+  <br/>
+</div>
 <nav aria-label="Page navigation example ">
   <ul *ngIf="pager.totalPages> 1" class="pagination justify-content-start">
     <li class="page-item" [ngClass]="{disabled:pager.currentPage === 1}">

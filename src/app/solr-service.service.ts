@@ -8,11 +8,11 @@ export class SolrServiceService {
   }
 
   getSolrCores(solrUrl: string): Observable<any> {
-    return this.httpService.get(solrUrl + '/solr/admin/cores?action=STATUS&wt=json');
+    return this.httpService.get(solrUrl + '/solr/admin/cores?action=STATUS&wt=json', { responseType: 'json' });
   }
 
   getSolrSchema(solrUrl: string, core: string): Observable<any> {
-    return this.httpService.get(solrUrl + '/solr/' + core + '/schema/fields');
+    return this.httpService.get(solrUrl + '/solr/' + core + '/schema/fields', { responseType: 'json' });
   }
 
   GetSolrData(solrUrl: string,
