@@ -12,4 +12,5 @@ export interface Column {
     omitNorms: boolean;
     filterType: string;
     filterValue: string;
+    validFilter: boolean;
 }

@@ -1,28 +1,38 @@
+<div *ngIf="alertMessage!==''" class="alert alert-error alert-dismissible fade show" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  {{alertMessage}}
+</div>
+<div>
+  <br/>
+</div>
 <form>
-  <div class="row">
-    <div class="col">
-      <p>Solr Url</p>
+  <div style="height: 40px;" class="row">
+    <div class="col  align-middle ">
+      <span>Solr Url</span>
     </div>
-    <div class="col">
-
-      <input type="text" class="form-control" [(ngModel)]="solrUrl" (blur)="solrUrlChange($event)" [ngModelOptions]="{standalone: true}"
-      />
+    <div class="col ">
+      <input type="text " class="form-control " [(ngModel)]="solrUrl " (blur)="solrUrlChange($event)
+      " [ngModelOptions]="{standalone: true} " />
     </div>
-    <div class="col">
+    <div class="col   align-middle">
       <p>Solr Core</p>
     </div>
-    <div class="col">
+    <div class="col ">
 
-      <select [(ngModel)]="solrCore" class="form-control" (ngModelChange)="solrCoreChange($event)" [ngModelOptions]="{standalone: true}">
-        <option *ngFor="let core of solrCores" [ngValue]="core">{{core}}</option>
+      <select [(ngModel)]="solrCore " class="form-control " (ngModelChange)="solrCoreChange($event)
+      " [ngModelOptions]="{standalone: true} ">
+        <option *ngFor="let core of solrCores " [ngValue]="core ">{{core}}</option>
       </select>
     </div>
-    <div class="col">
+    <div class="col   align-middle">
       <p>Page Size</p>
     </div>
-    <div class="col">
+    <div class="col ">
 
-      <select [ngModel]="pageSize" class="form-control" (ngModelChange)="pageSizeChange($event)" [ngModelOptions]="{standalone: true}">
+      <select [ngModel]="pageSize " class="form-control " (ngModelChange)="pageSizeChange($event) " [ngModelOptions]="{standalone:
+      true} ">
         <option>10</option>
         <option>20</option>
         <option>50</option>
@@ -30,12 +40,12 @@
       </select>
     </div>
   </div>
-  <div class="row">
+  <div class="row ">
     <br/>
   </div>
 </form>
-<nav aria-label="Page navigation example">
-  <ul *ngIf="pager.totalPages > 1" class="pagination justify-content-start">
+<nav aria-label="Page navigation example ">
+  <ul *ngIf="pager.totalPages> 1" class="pagination justify-content-start">
     <li class="page-item" [ngClass]="{disabled:pager.currentPage === 1}">
       <a class="page-link" (click)="setPage(1)" href="#">First</a>
     </li>
@@ -50,6 +60,14 @@
     </li>
   </ul>
 </nav>
+
+<span *ngFor="let column of validFilteredColumns(displayedColumns)" class="badge badge-pill badge-dark">{{column.name + ' '+column.filterType+' '+column.filterValue}}
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="clearFilter(column)">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</span>
+<br>
+
 <table class="table table-bordered  table-striped">
   <thead>
     <tr>

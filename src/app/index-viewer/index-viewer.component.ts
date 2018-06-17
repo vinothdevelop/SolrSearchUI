@@ -26,6 +26,7 @@ export class IndexViewerComponent implements OnInit {
   solrCores: Array<string>;
   solrCore: string;
   pager: Pager;
+  alertMessage: string;
 
   pageSizeChange(event: any) {
     this.pageSize = event;
@@ -64,6 +65,10 @@ export class IndexViewerComponent implements OnInit {
   }
 
   queryChange(event: KeyboardEvent) {
+    this.GenerateFilterCondition();
+  }
+
+  private GenerateFilterCondition() {
     this.apiQuery = '*:*';
     const queryArray = [];
     this.displayedColumns.forEach(column => {
@@ -71,8 +76,10 @@ export class IndexViewerComponent implements OnInit {
         column.filterType != null) || (column.type === 'boolean' && column.filterValue !== 'All')) &&
         column.filterValue !== '' &&
         column.filterValue != null) {
+        column.validFilter = true;
         if (column.type === 'boolean') {
           queryArray.push(column.name + ':' + column.filterValue);
+          column.filterType = 'equals';
         } else if (column.filterType === 'contains') {
           queryArray.push(column.name + ':*' + column.filterValue + '*');
         } else if (column.filterType === 'starts with') {
@@ -91,8 +98,24 @@ export class IndexViewerComponent implements OnInit {
     if (queryArray.length > 0) {
       this.apiQuery = queryArray.join(' AND ');
     }
-
     this.GetSolrData();
+  }
+
+  validFilteredColumns(itemList: Column[]): Column[] {
+    const result: Column[] = [];
+    this.displayedColumns.forEach(column => {
+      if (column.validFilter) {
+        result.push(column);
+      }
+    });
+    return result;
+  }
+
+  clearFilter(column: Column) {
+    column.filterType = null;
+    column.filterValue = null;
+    column.validFilter = false;
+    this.GenerateFilterCondition();
   }
 
   private GetSolrSchema() {
@@ -111,6 +134,7 @@ export class IndexViewerComponent implements OnInit {
     this.pager.totalPages = 1;
     this.pager.totalResults = 1;
     this.pager.startIndex = 0;
+    this.alertMessage = '';
     this.GetConfiguration();
   }
 
@@ -137,9 +161,9 @@ export class IndexViewerComponent implements OnInit {
       },
         (err: HttpErrorResponse) => {
           if (err.error instanceof Error) {
-            console.log('Client-side error occured.');
+            this.ShowAlert('Client-side error occured.');
           } else {
-            console.log('Server-side error occured.');
+            this.ShowAlert('Server-side error occured.');
           }
         });
   }
@@ -153,5 +177,9 @@ export class IndexViewerComponent implements OnInit {
   private SetPaging(totalRecords: number) {
     this.pager.totalResults = totalRecords;
     this.pager.totalPages = Math.ceil(totalRecords / Number.parseInt(this.pageSize));
+  }
+
+  private ShowAlert(message: string) {
+    this.alertMessage = message;
   }
 }
