@@ -33,4 +33,4 @@ jobs:
     - name: Run a build
       run: npm run build
     - name: ESLint Action
-      uses: hallee/eslint-action@1.0.1
+      run: npm run lint
